@@ -15,38 +15,63 @@ const Board = ({ newTask, onEditTask }) => {
   const [taskList, setTaskList] = useState(tasks);
   const [columns, setColumns] = useState(initialColumns);
 
-  const updateColumns = (taskList) => {
-    return initialColumns.map((column) => ({
+  useEffect(() => {
+    const updatedColumns = initialColumns.map((column) => ({
       ...column,
       tasks: taskList.filter((task) => task.status === column.title),
       tasksNumber: taskList.filter((t) => t.status === column.title).length,
     }));
-  };
-
-  useEffect(() => {
-    let updatedColumns = updateColumns(taskList);
     setColumns(updatedColumns);
   }, [taskList]);
 
   useEffect(() => {
     if (newTask) {
-      let id = new Date().getTime()
-      let task = {...newTask, id, code: `TT-2`}
-      setTaskList((prevTaskList) => [...prevTaskList, task]);
+      const id = new Date().getTime();
+      const task = {...newTask, id, code: `TT-${taskList.length + 1}`};
+      setTaskList(prevTaskList => [...prevTaskList, task]);
     }
-
   }, [newTask]);
+
+  function handleOnDrag(e, task) {
+    e.dataTransfer.setData("task", JSON.stringify(task));
+  }
+
+  function handleOnDrop(e, droppedColumnStatus) {
+    e.preventDefault();
+    const task = JSON.parse(e.dataTransfer.getData("task"));
+    const updatedTask = { ...task, status: droppedColumnStatus };
+    setTaskList(prevTaskList => {
+      const index = prevTaskList.findIndex(t => t.id === updatedTask.id);
+      if (index === -1) {
+        return prevTaskList;
+      }
+      
+      const newTaskList = prevTaskList.filter(t => t.id !== updatedTask.id);
+      return [...newTaskList, updatedTask];
+    });
+  }
+
+  function handleDragOver(e){
+    e.preventDefault();
+  }
+
+  function previewTask(task){
+
+  }
 
   return (
     <div className="grid-container">
       {columns.map((column, columnIndex) => (
-        <div key={columnIndex} className="column-container">
-          <ColumnTitle column={column} />
+        <div key={columnIndex} className="column-container" 
+          onDrop={(e) => handleOnDrop(e, column.title)} onDragOver={handleDragOver}>
+          <ColumnTitle column={column}/>
           <hr />
           <div className="task-list">
-            {column.tasks.map((task) => (
+            {column.tasks.map((task, i) => (
               <Task key={task.id} task={task} 
-                editTask={(e) => onEditTask(e)} />
+                editTask={(task) => onEditTask(task)} 
+                previewTask={(task) => previewTask(task)}
+                onDragStart={(e) => handleOnDrag(e, task)} />// custom !!
             ))}
           </div>
         </div>

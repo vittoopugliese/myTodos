@@ -97,6 +97,7 @@ p {
   margin-top: 1em;
   width: 90%;
   margin: 12px auto;
+  min-height: 100dvh;
 }
 
 .title-container {
@@ -206,7 +207,12 @@ header{
   align-items: center;
   display: flex;
   justify-content: center;
+  flex-direction: row;
   background-color: var(--dark1m);
+}
+
+.app-logo p{
+  font-size: 12px;
 }
 
 .search-container{
